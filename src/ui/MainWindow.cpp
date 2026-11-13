@@ -161,8 +161,49 @@ MainWindow::MainWindow(Engine* engine, DefaultSwitcher* switcher, QWidget* paren
     // never have painted, so the user would see a dialog over a dead region.
     if (engine_ && !engine_->isReady()) {
         const QString detail = engine_->problem();
-        QTimer::singleShot(0, this, [this, detail] { showProblem(detail); });
+        QTimer::singleShot(0, this, [this, detail] { offerSiblingTakeover(detail); });
     }
+}
+
+// 引擎没就绪 / 服务起不来，十有八九是规范端口被占。若占位者是「另一个 devdatapod
+// 安装」的进程，征得同意后停掉它们、重新分配端口——新旧两个安装和平交接，
+// 而不是互相报错。retryId 给了的话，接管成功后自动把那个服务再拉起来。
+void MainWindow::offerSiblingTakeover(const QString& detail, const QString& retryId) {
+    const QVector<net::PortOccupier> siblings = engine_->siblingPanelProcesses();
+    if (siblings.isEmpty()) {
+        showProblem(detail);
+        return;
+    }
+    QStringList lines;
+    for (const net::PortOccupier& item : siblings) {
+        lines.append(QStringLiteral("· %1（端口 %2）").arg(item.processName).arg(item.port));
+    }
+    if (!ConfirmDialog::ask(this, QStringLiteral("发现另一个 devdatapod 安装"),
+                            QStringLiteral("以下进程属于另一个 devdatapod 安装，正占用本面板需要的端口："
+                                           "\n\n%1\n\n停止它们并继续？\n\n"
+                                           "建议之后卸载旧安装目录，彻底避免冲突。")
+                                .arg(lines.join(QLatin1Char('\n'))),
+                            QStringLiteral("停止并继续"))) {
+        showProblem(detail);
+        return;
+    }
+    engine_->stopSiblingPanels();
+    QString error;
+    if (!engine_->synchronize(&error)) {
+        showProblem(error);
+        return;
+    }
+    log::info(QStringLiteral("ui: 接管完成，端口已重新分配"));
+    if (!retryId.isEmpty()) {
+        busy_.insert(retryId);
+        // TerminateProcess 是硬杀，被占端口不会立刻释放（毫秒级残留），
+        // 立刻重起还是绑定失败——等 1.5 秒让它彻底撒手再拉起来。
+        QTimer::singleShot(1500, this, [this, retryId] {
+            QMetaObject::invokeMethod(op_, "start", Qt::QueuedConnection,
+                                      Q_ARG(QString, retryId));
+        });
+    }
+    refresh();
 }
 
 void MainWindow::buildPages() {
@@ -204,6 +245,7 @@ QVector<ServiceRowInfo> MainWindow::collectRows() {
         // 刚点下按钮、进程还没起来的这一瞬，Engine 还报 Stopped。busy_ 里的直接显示
         // 「启动中」，让按钮立刻置灰，不用等下一次 poll。
         info.state = busy_.contains(row.instance.id) ? RunState::Starting : row.state;
+        info.detail = row.detail;
         info.promotable = engine_->isReady() && !row.instance.isDefault;
         out.append(info);
     }
@@ -229,6 +271,24 @@ void MainWindow::refresh() {
     home_->setServices(services);
     // 「资源信息」页的实例 / 站点计数跟着轮询走，装一个组件或建一个站点都实时反映。
     home_->setResourceCounts(services.size(), sites::load().size());
+
+    // 服务崩了且检测到另一个 devdatapod 的进程占着端口：主动给接管选项。
+    // start() 只保证进程拉起来了，绑定失败是之后 status() 才发现的（Crashed），
+    // 所以接管的另一入口在这里，按实例只提醒一次。
+    if (engine_) {
+        for (const ServiceRowInfo& info : services) {
+            if (info.state == RunState::Crashed) {
+                if (!crashNotified_.contains(info.id)
+                    && !engine_->siblingPanelProcesses().isEmpty()) {
+                    crashNotified_.insert(info.id);
+                    offerSiblingTakeover(info.detail, info.id);
+                    break;    // 一次轮询只弹一个，别叠罗汉
+                }
+            } else {
+                crashNotified_.remove(info.id);
+            }
+        }
+    }
 
     QString signature;
     for (const ServiceRowInfo& info : services) {
@@ -269,6 +329,11 @@ void MainWindow::onServiceOpFinished(const QString& id, bool ok, const QString& 
     busy_.remove(id);
     if (!ok) {
         log::error(QStringLiteral("engine: 操作 %1 失败：%2").arg(id, error));
+        // 起不来且检测到另一个 devdatapod 的进程占着端口：给接管选项，而不是干报错。
+        if (engine_ && !engine_->siblingPanelProcesses().isEmpty()) {
+            offerSiblingTakeover(error, id);
+            return;
+        }
         showProblem(error);
     }
     refresh();

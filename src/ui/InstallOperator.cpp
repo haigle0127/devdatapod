@@ -68,6 +68,10 @@ void InstallOperator::install(const Component& component) {
     // 让 Engine 给新实例分配端口并刷新列表。
     QString syncError;
     if (!engine_->synchronize(&syncError)) {
+        // 注册成功却分不到端口（典型：规范端口被别的进程占着）。把刚才的注册回滚掉，
+        // 否则实例留在注册表里却没有分配，之后启动只会报「no port allocation」，
+        // 用户根本不知道根源在端口被占。
+        engine_->registry()->remove(id);
         emit finished(id, false, QStringLiteral("端口分配失败：%1").arg(syncError));
         return;
     }

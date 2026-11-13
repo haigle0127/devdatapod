@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/model/RunState.h"
+#include "core/net/PortProbe.h"
 #include "core/service/IServiceDriver.h"
 #include "core/service/InstanceRegistry.h"
 #include "core/service/ServiceInstance.h"
@@ -75,6 +76,13 @@ public:
     // Re-read configuration in place (no restart). Drivers that cannot do it say so.
     bool reload(const QString& id, QString* error = nullptr);
     bool isRunning(const QString& id) const;
+
+    // 和平接管：先看 / 再停「另一个 devdatapod 安装」的监听进程（它们占了我们的端口）。
+    // siblingPanelProcesses() 只列不停；stopSiblingPanels() 终止并返回停掉的描述。
+    // 调用方停掉后应再跑一次 synchronize() 重新分配端口。只碰路径带 devdatapod 且
+    // 不属于本安装的进程，别的占用者一律不动。
+    QVector<net::PortOccupier> siblingPanelProcesses() const;
+    QStringList stopSiblingPanels();
     ServiceStatus statusOf(const QString& id);
 
     // Stopped, starting, running ... for every instance. The one call the service list and

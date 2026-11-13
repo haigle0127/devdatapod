@@ -11,6 +11,7 @@
 #include "ui/theme/Theme.h"
 
 #include <QCoreApplication>
+#include <QDir>
 #include <QElapsedTimer>
 #include <QGraphicsDropShadowEffect>
 #include <QHBoxLayout>
@@ -437,6 +438,9 @@ bool ConfigDialog::applyChanges(QString* error) {
     if (!validateInputs(error)) return false;
 
     const QString dataDir = paths::installDir() + QLatin1Char('/') + instance_.dataDir;
+    // 服务从没启动过时 datadir 还不存在（目录是 start 时才建的），先把目录建出来
+    // 再写设置，否则写盘报「系统找不到指定的路径」。
+    QDir().mkpath(dataDir);
 
     // 1. 保存组件设置
     if (instance_.kind == QLatin1String("redis") && redisPassword_) {

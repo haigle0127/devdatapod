@@ -76,6 +76,9 @@ private:
     // 站点变更后：刷新网站页；若 Web 服务在跑，把新配置热重载进去（不断开连接）。
     void applyWebConfig();
     bool webServiceUp() const;
+    // 引擎没就绪、或服务启动失败且占位者是另一个 devdatapod 安装时，征得同意后
+    // 接管端口；retryId 非空时接管成功后自动重试该服务。
+    void offerSiblingTakeover(const QString& detail, const QString& retryId = QString());
     void showProblem(const QString& detail);
     void onServiceOpFinished(const QString& id, bool ok, const QString& error);
 
@@ -90,6 +93,8 @@ private:
     SoftwarePage* software_ = nullptr;
     // 上次轮询时 Web 服务是否在跑，驱动网站页的状态列按需重建。
     bool lastWebUp_ = false;
+    // 已经就「崩溃 + 疑似兄弟安装占位」弹过接管提示的实例，Running/Stopped 后复位。
+    QSet<QString> crashNotified_;
     // Stops the status bar from rebuilding its chips twice a second while nothing moved.
     QString signature_;
 

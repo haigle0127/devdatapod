@@ -20,6 +20,7 @@ struct ServiceRowInfo {
     QString name;
     QString role;   // "default" | "secondary"
     QString port;   // the port this instance actually listens on
+    QString detail; // driver 的状态说明（崩溃原因等），崩溃时接管提示用
     bool promotable = false;    // secondary of a kind that has a default: 「设为默认」可用
     RunState state = RunState::Stopped;
 };

@@ -185,7 +185,9 @@ QString RedisDriver::renderBlock() const {
         // always-show-logo is a 5.0 addition.
         lines << QStringLiteral("always-show-logo no");
     }
-    lines << QStringLiteral("dir %1").arg(dataDir);
+    // 路径必须带引号：安装目录可能含空格（D:\Program Files\...），redis 配置按空白
+    // 切词，裸路径会被劈成多段直接 FATAL CONFIG FILE ERROR。
+    lines << QStringLiteral("dir \"%1\"").arg(dataDir);
     if (versionAtLeast(3, 2)) {
         // 3.0.504 has no protected-mode at all; writing it would refuse to start.
         lines << QStringLiteral("protected-mode %1")
@@ -199,7 +201,8 @@ QString RedisDriver::renderBlock() const {
         }
     }
     if (!settings_.password.isEmpty()) {
-        lines << QStringLiteral("requirepass %1").arg(settings_.password);
+        // 密码也可能含空格，同样要引号。
+        lines << QStringLiteral("requirepass \"%1\"").arg(settings_.password);
     }
     return lines.join(QLatin1Char('\n')) + QLatin1Char('\n');
 }

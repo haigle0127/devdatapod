@@ -16,9 +16,11 @@
 #include "core/util/Log.h"
 
 #include <QByteArray>
+#include <QDir>
 #include <QFileInfo>
 #include <QHostAddress>
 #include <QTcpServer>
+#include <QVector>
 
 #if defined(Q_OS_MACOS)
 #include <QProcess>
@@ -97,6 +99,54 @@ PortOccupier identifyPortOwner(quint16 port) {
     }
 #else
     Q_UNUSED(port);
+#endif
+    return out;
+}
+
+QVector<PortOccupier> siblingPanelListeners(const QString& ownRoot) {
+    QVector<PortOccupier> out;
+#if defined(Q_OS_WIN)
+    const QString own = QDir::fromNativeSeparators(ownRoot).toLower() + QLatin1Char('/');
+
+    ULONG size = 0;
+    const ULONG probe = GetExtendedTcpTable(nullptr, &size, FALSE, AF_INET,
+                                           TCP_TABLE_OWNER_PID_LISTENER, 0);
+    if (probe != ERROR_INSUFFICIENT_BUFFER || size == 0) return out;
+    QByteArray table(static_cast<int>(size), '\0');
+    if (GetExtendedTcpTable(table.data(), &size, FALSE, AF_INET, TCP_TABLE_OWNER_PID_LISTENER,
+                            0) != NO_ERROR) {
+        return out;
+    }
+    const auto* rows = reinterpret_cast<const MIB_TCPTABLE_OWNER_PID*>(table.constData());
+    for (DWORD i = 0; i < rows->dwNumEntries; ++i) {
+        const MIB_TCPROW_OWNER_PID& row = rows->table[i];
+        PortOccupier item;
+        item.port = ntohs(static_cast<u_short>(row.dwLocalPort));
+        item.pid = row.dwOwningPid;
+        item.address = QHostAddress(static_cast<quint32>(ntohl(row.dwLocalAddr))).toString();
+
+        HANDLE process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE,
+                                     static_cast<DWORD>(row.dwOwningPid));
+        if (!process) continue;    // 系统服务之类取不到路径的，不碰
+        wchar_t path[MAX_PATH] = {};
+        DWORD chars = MAX_PATH;
+        const bool havePath =
+            QueryFullProcessImageNameW(process, 0, path, &chars) != 0;
+        CloseHandle(process);
+        if (!havePath) continue;
+        item.executable = QDir::fromNativeSeparators(
+            QString::fromWCharArray(path, static_cast<int>(chars)));
+        item.processName = QFileInfo(item.executable).fileName();
+
+        const QString lower = item.executable.toLower();
+        // 路径里带 devdatapod 目录、且不属于本安装 → 另一个面板的进程。
+        if (!lower.contains(QStringLiteral("/devdatapod/"))) continue;
+        if (lower.startsWith(own)) continue;
+        item.occupied = true;
+        out.append(item);
+    }
+#else
+    Q_UNUSED(ownRoot);
 #endif
     return out;
 }

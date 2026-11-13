@@ -6,7 +6,18 @@
 #include "core/service/NginxDriver.h"
 #include "core/service/RedisDriver.h"
 #include "core/service/ServiceKind.h"
+#include "core/util/AppPaths.h"
 #include "core/util/Log.h"
+
+#ifdef Q_OS_WIN
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
 
 namespace devdatapod {
 
@@ -348,6 +359,34 @@ bool Engine::reload(const QString& id, QString* error) {
 bool Engine::isRunning(const QString& id) const {
     const auto it = drivers_.find(id);
     return it != drivers_.end() && it->second->status().state == RunState::Running;
+}
+
+QVector<net::PortOccupier> Engine::siblingPanelProcesses() const {
+    return net::siblingPanelListeners(paths::installDir());
+}
+
+QStringList Engine::stopSiblingPanels() {
+    QStringList stopped;
+#ifdef Q_OS_WIN
+    const QVector<net::PortOccupier> siblings = net::siblingPanelListeners(paths::installDir());
+    for (const net::PortOccupier& item : siblings) {
+        HANDLE process = OpenProcess(PROCESS_TERMINATE, FALSE, static_cast<DWORD>(item.pid));
+        if (!process) continue;
+        const bool ok = TerminateProcess(process, 0) != 0;
+        CloseHandle(process);
+        if (ok) {
+            log::warn(QStringLiteral("engine: stopped sibling devdatapod process %1 (pid %2, port %3)")
+                          .arg(item.processName)
+                          .arg(item.pid)
+                          .arg(item.port));
+            stopped.append(QStringLiteral("%1 (pid %2, 端口 %3)")
+                               .arg(item.processName)
+                               .arg(item.pid)
+                               .arg(item.port));
+        }
+    }
+#endif
+    return stopped;
 }
 
 ServiceStatus Engine::statusOf(const QString& id) {
