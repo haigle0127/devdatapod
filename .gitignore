@@ -1,0 +1,80 @@
+logs/
+.p0-probe/
+build/
+build-*/
+dist/
+.qoder/repowiki/
+
+# Runtime state, written by the panel itself. A committed data/ports.json is precisely
+# "my allocations overwrote yours": the numbers belong to one machine, not to the repo.
+data/
+# Downloaded service binaries (docs/ROADMAP.md P5 manifest installer).
+Extensions/
+# Site roots the panel creates at runtime (paths::wwwDir()).
+WWW/
+
+*.obj
+*.ilk
+*.pdb
+*.exe
+*.dll.exp
+*.dll.lib
+
+# aqtinstall writes this next to the working dir on every run
+aqtinstall.log
+debug.log
+
+# CLion
+cmake-build-*/
+.idea/
+
+# Qt Creator
+CMakeLists.txt.user*
+*.autosave
+
+# Visual Studio / MSBuild
+*.suo
+*.vcxproj.user
+*.sln
+.vs/
+
+# CMake user presets are machine-local
+CMakeUserPresets.json
+
+# Windows 杂物
+Thumbs.db
+desktop.ini
+
+# Node / Python（构建脚本可能引入）
+node_modules/
+__pycache__/
+*.pyc
+
+# Qt auto-generated files
+*.moc
+*.rcc
+*.uic
+ui_*.h
+qrc_*.cpp
+
+# Visual Studio / MSBuild
+*.suo
+*.vcxproj.user
+*.sln
+
+# macOS (for the later Mac port)
+.DS_Store
+*.app/
+*.dmg
+*.dSYM/
+
+# Temp / editor files
+*~
+*.swp
+*.swo
+.vscode/
+# Qt Creator per-user project state (build dir, kit, absolute paths). Machine-local:
+# a committed copy pins the next person to `D:\code\devEnv` and a target named `devenv`.
+CMakeLists.txt.user*
+# Scratch space for local debugging artifacts (screenshots, pid files).
+.tmp/

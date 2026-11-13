@@ -1,0 +1,191 @@
+/* devdatapod QSS - structure is hand-written, every token placeholder value is generated.
+   Source of truth: design/devconsole.pen "variables" via scripts/gen-theme.mjs.
+   Never put a literal color in this file; add a token to the .pen instead.
+   Sizes mirror the .pen geometry (padding / gap / font sizes in device-independent px). */
+
+* {
+    font-family: "MiSans", "Inter", "Noto Sans SC", "Microsoft YaHei", "PingFang SC";
+}
+
+#Screen { background: #F7F4EC; }
+
+/* ---------- card surface ----------
+   The .pen gives cards a #2620400D shadow (ink at 5% alpha). QSS has no box-shadow, so
+   the 1px line border is what separates a card from the beige background. */
+#Card {
+    background: #FFFFFF;
+    border: 1px solid #E8E2D3;
+    border-radius: 8px;
+}
+
+/* ---------- title bar (46px, no native frame) ---------- */
+#TitleBar { background: #FFFFFF; border-bottom: 1px solid #E8E2D3; }
+#AppTitle {
+    font-family: "MiSans", "Funnel Sans", "Noto Sans SC", "Microsoft YaHei", "PingFang SC"; font-size: 15px; font-weight: 500; color: #262040;
+}
+#AppDomain { font-family: "MiSans", "Geist", "Noto Sans SC", "Microsoft YaHei", "PingFang SC"; font-size: 11px; color: #6F6985; }
+#WindowBtn, #WindowBtnClose {
+    border: none; background: transparent; padding: 0; margin: 0;
+}
+#WindowBtn:hover { background: #EDE8DA; }
+#WindowBtnClose:hover { background: #DE5B4C; }
+
+/* ---------- sidebar (216px) ---------- */
+#Sidebar { background: #2A2450; }
+#Brand {
+    font-family: "MiSans", "Funnel Sans", "Noto Sans SC", "Microsoft YaHei", "PingFang SC"; font-size: 24px; font-weight: 500; color: #FFFFFF;
+}
+#BrandSub { font-family: "MiSans", "Geist", "Noto Sans SC", "Microsoft YaHei", "PingFang SC"; font-size: 11px; color: #B7B1D6; }
+#NavBtn {
+    border: none; background: transparent; color: #B7B1D6;
+    font-family: "MiSans", "Inter", "Noto Sans SC", "Microsoft YaHei", "PingFang SC"; font-size: 13px; text-align: left;
+    padding: 10px 12px; border-radius: 8px;
+}
+#NavBtn:hover { background: rgba(255, 255, 255, 0.08); color: #FFFFFF; }
+#NavBtn:checked {
+    background: #6C5CE7; color: #FFFFFF; font-weight: 500;
+}
+#PromoCard {
+    border: none; border-radius: 8px;
+    /* the .pen gradient stops are exactly $accent and $accent-3 */
+    background: qlineargradient(x1: 0, y1: 0, x2: 0.34, y2: 1,
+                                stop: 0 #6C5CE7, stop: 1 #E49AB0);
+}
+#PromoTitle {
+    font-family: "MiSans", "Funnel Sans", "Noto Sans SC", "Microsoft YaHei", "PingFang SC"; font-size: 13px; font-weight: 500; color: #FFFFFF;
+}
+#PromoSub { font-family: "MiSans", "Geist", "Noto Sans SC", "Microsoft YaHei", "PingFang SC"; font-size: 11px; color: rgba(255, 255, 255, 0.8); }
+
+/* ---------- shared bits ---------- */
+#AccentBar { background: #6C5CE7; border: none; border-radius: 2px; }
+#AccentBar[tone="accent3"] { background: #E49AB0; }
+#SectionTitle {
+    font-family: "MiSans", "Funnel Sans", "Noto Sans SC", "Microsoft YaHei", "PingFang SC"; font-size: 19px; font-weight: 500; color: #262040;
+}
+#GroupTitle {
+    font-family: "MiSans", "Funnel Sans", "Noto Sans SC", "Microsoft YaHei", "PingFang SC"; font-size: 14px; font-weight: 500; color: #262040;
+}
+#SectionHint { font-family: "MiSans", "Geist", "Noto Sans SC", "Microsoft YaHei", "PingFang SC"; font-size: 11px; color: #6F6985; }
+#Divider { background: #E8E2D3; border: none; }
+#EmptyHint { font-size: 12px; color: #6F6985; }
+
+/* ---------- 首页: announcement + hero ---------- */
+#AnnText { font-size: 12px; color: #6F6985; }
+#AnnLink { font-family: "MiSans", "Geist", "Noto Sans SC", "Microsoft YaHei", "PingFang SC"; font-size: 11px; color: #6C5CE7; }
+#HeroDesc { font-size: 12px; color: #6F6985; }
+#Chip {
+    background: transparent; border: 1px solid #E8E2D3; border-radius: 6px;
+}
+#ChipLabel { font-size: 13px; font-weight: 500; color: #262040; }
+#ChipAction, #PrimaryBtn {
+    background: #6C5CE7; color: #FFFFFF; border: none; border-radius: 4px;
+    font-family: "MiSans", "Inter", "Noto Sans SC", "Microsoft YaHei", "PingFang SC"; font-size: 12px; font-weight: 500;
+}
+#ChipAction { padding: 7px 16px; }
+#ChipAction:hover, #PrimaryBtn:hover { background: #A78BFA; }
+#PrimaryBtn { padding: 6px 15px; }
+#PrimaryBtn:disabled { background: #EDE8DA; color: #6F6985; }
+#DangerBtn {
+    background: #DE5B4C; color: #FFFFFF; border: none; border-radius: 4px;
+    font-family: "MiSans", "Inter", "Noto Sans SC", "Microsoft YaHei", "PingFang SC"; font-size: 12px; font-weight: 500; padding: 6px 15px;
+}
+#DangerBtn:hover { background: #E49AB0; }
+#DangerBtn:disabled { background: #EDE8DA; color: #6F6985; }
+
+/* ---------- 首页: 套件 rows ---------- */
+#ServiceRow { background: transparent; border: none; border-bottom: 1px solid #E8E2D3; }
+#SvcName { font-size: 13px; font-weight: 500; color: #262040; }
+#SvcState { font-family: "MiSans", "Geist", "Noto Sans SC", "Microsoft YaHei", "PingFang SC"; font-size: 11px; color: #6F6985; }
+#SvcState[state="running"] { color: #3BA776; }
+#SvcState[state="starting"], #SvcState[state="switching"] { color: #E0A23F; }
+#SvcState[state="crashed"] { color: #DE5B4C; font-weight: 500; }
+#RoleBadge { font-size: 11px; border-radius: 4px; padding: 2px 6px; }
+#RoleBadge[role="default"] {
+    background: #EFECFF; color: #6C5CE7; font-weight: 500;
+}
+#RoleBadge[role="secondary"] { background: #EDE8DA; color: #6F6985; }
+#PortTag {
+    font-family: "MiSans", "Geist", "Noto Sans SC", "Microsoft YaHei", "PingFang SC"; font-size: 11px; color: #6F6985;
+    background: #EDE8DA; border-radius: 4px; padding: 2px 6px;
+}
+#SoftBtn {
+    background: #EFECFF; color: #6C5CE7; border: none; border-radius: 4px;
+    font-family: "MiSans", "Inter", "Noto Sans SC", "Microsoft YaHei", "PingFang SC"; font-size: 12px; font-weight: 500; padding: 6px 15px;
+}
+#SoftBtn:hover { background: rgba(108, 92, 231, 0.18); }
+#SoftBtn:disabled { background: #EDE8DA; color: #6F6985; }
+
+/* ---------- 表单控件：弹窗输入框 + 站点页搜索框共用 ---------- */
+#FieldInput {
+    background: #FFFFFF; border: 1px solid #E8E2D3; border-radius: 6px;
+    padding: 0 10px; font-family: "MiSans", "Inter", "Noto Sans SC", "Microsoft YaHei", "PingFang SC"; font-size: 13px; color: #262040;
+}
+#FieldInput:focus { border: 1px solid #6C5CE7; }
+
+/* ---------- 网站页表格头 ---------- */
+#TableHead { font-family: "MiSans", "Geist", "Noto Sans SC", "Microsoft YaHei", "PingFang SC"; font-size: 11px; color: #6F6985; }
+
+/* ---------- 资源信息键值行 ---------- */
+#KvKey { font-size: 12px; color: #6F6985; }
+#KvValue { font-size: 12px; color: #262040; }
+
+/* ---------- 日志 tail 视图 ---------- */
+#LogView {
+    background: #F7F4EC; border: 1px solid #E8E2D3; border-radius: 8px;
+    padding: 8px; font-size: 11px; color: #262040;
+    /* 等宽字体：日志列对齐。没有 mono token，用系统常见等宽栈。 */
+    font-family: "Cascadia Mono", "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+#LogView QScrollBar:vertical {
+    background: transparent; width: 8px; margin: 2px 0;
+}
+#LogView QScrollBar::handle:vertical {
+    background: #EDE8DA; border-radius: 4px; min-height: 24px;
+}
+#LogView QScrollBar::handle:vertical:hover { background: #E8E2D3; }
+#LogView QScrollBar::add-line:vertical, #LogView QScrollBar::sub-line:vertical {
+    height: 0; background: none; border: none;
+}
+#LogView QScrollBar::add-page:vertical, #LogView QScrollBar::sub-page:vertical {
+    background: none;
+}
+
+/* ---------- 套件列表滚动区：背景透明，滚动条细且贴 token ---------- */
+#SuiteScroll { background: transparent; border: none; }
+#SuiteBody { background: transparent; }
+#SuiteScroll QScrollBar:vertical {
+    background: transparent; width: 8px; margin: 2px 0;
+}
+#SuiteScroll QScrollBar::handle:vertical {
+    background: #EDE8DA; border-radius: 4px; min-height: 24px;
+}
+#SuiteScroll QScrollBar::handle:vertical:hover { background: #E8E2D3; }
+#SuiteScroll QScrollBar::add-line:vertical, #SuiteScroll QScrollBar::sub-line:vertical {
+    height: 0; background: none; border: none;
+}
+#SuiteScroll QScrollBar::add-page:vertical, #SuiteScroll QScrollBar::sub-page:vertical {
+    background: none;
+}
+
+/* ---------- status dots: 9px in rows, 8px in chips ---------- */
+#StatusDot { border: none; border-radius: 99px; }
+#StatusDot[state="running"] { background: #3BA776; }
+#StatusDot[state="stopped"], #StatusDot[state="crashed"] { background: #DE5B4C; }
+#StatusDot[state="starting"], #StatusDot[state="switching"] { background: #E0A23F; }
+#StatusDot[state="idle"] { background: #E8E2D3; }
+
+/* ---------- 首页: bottom section ---------- */
+#MenuBtn {
+    border: none; background: transparent; color: #6F6985;
+    font-family: "MiSans", "Inter", "Noto Sans SC", "Microsoft YaHei", "PingFang SC"; font-size: 12px; text-align: left;
+    padding: 10px 12px; border-radius: 6px;
+}
+#MenuBtn:hover { background: rgba(108, 92, 231, 0.08); }
+#MenuBtn:checked { background: #EFECFF; color: #6C5CE7; font-weight: 500; }
+
+/* ---------- status bar (36px) ---------- */
+#StatusBar {
+    background: #FFFFFF; border: 1px solid #E8E2D3; border-radius: 8px;
+}
+#StatusChip { background: transparent; border: none; }
+#StatusText { font-family: "MiSans", "Geist", "Noto Sans SC", "Microsoft YaHei", "PingFang SC"; font-size: 11px; color: #6F6985; }

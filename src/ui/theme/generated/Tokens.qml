@@ -1,0 +1,25 @@
+import QtQuick
+
+QtObject {
+    readonly property color surface: "#F7F4EC"
+    readonly property color card: "#FFFFFF"
+    readonly property color ink: "#262040"
+    readonly property color ink2: "#6F6985"
+    readonly property color line: "#E8E2D3"
+    readonly property color accent: "#6C5CE7"
+    readonly property color accentSoft: "#EFECFF"
+    readonly property color accent2: "#A78BFA"
+    readonly property color accent3: "#E49AB0"
+    readonly property color sidebar: "#2A2450"
+    readonly property color sidebarText: "#B7B1D6"
+    readonly property color success: "#3BA776"
+    readonly property color danger: "#DE5B4C"
+    readonly property color warning: "#E0A23F"
+    readonly property color track: "#EDE8DA"
+    readonly property string fontHeadingStack: "\"MiSans\", \"Funnel Sans\", \"Noto Sans SC\", \"Microsoft YaHei\", \"PingFang SC\""
+    readonly property string fontHeadingFamily: "Funnel Sans"
+    readonly property string fontBodyStack: "\"MiSans\", \"Inter\", \"Noto Sans SC\", \"Microsoft YaHei\", \"PingFang SC\""
+    readonly property string fontBodyFamily: "Inter"
+    readonly property string fontCapStack: "\"MiSans\", \"Geist\", \"Noto Sans SC\", \"Microsoft YaHei\", \"PingFang SC\""
+    readonly property string fontCapFamily: "Geist"
+}

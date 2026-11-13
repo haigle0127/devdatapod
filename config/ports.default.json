@@ -1,0 +1,39 @@
+{
+  "schema": 2,
+  "band": [30000, 32000],
+  "bindAddress": "127.0.0.1",
+
+  "canonical": {
+    "http": 80,
+    "https": 443,
+    "mysql": 3306,
+    "mariadb": 3306,
+    "redis": 6379
+  },
+
+  "slots": {
+    "mysql": [30306, 30399],
+    "mariadb": [30306, 30399],
+    "phpFpm": [30100, 30199],
+    "nginx": [30480, 30489],
+    "nginxSsl": [30490, 30499],
+    "redis": [30600, 30619],
+    "python": [30700, 30799]
+  },
+
+  "stride": {
+    "phpFpm": 10,
+    "python": 10
+  },
+
+  "panel": {
+    "ipc": 30001,
+    "api": 30010,
+    "adminer": 30020,
+    "download": 30030,
+    "macHttp": 30080,
+    "macHttps": 30443
+  },
+
+  "allocations": {}
+}
