@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 
 project(devdatapod
-    VERSION 1.0.0
+    VERSION 1.0.1
     DESCRIPTION "Green portable local dev service panel"
     LANGUAGES CXX
 )

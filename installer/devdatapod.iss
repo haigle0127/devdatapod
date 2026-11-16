@@ -4,7 +4,7 @@
 ; 设置页「检查更新」按这个约定从 releases/latest 里抠版本号。
 
 #define MyAppName "devdatapod"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.0.1"
 #define MyAppPublisher "devdatapod contributors"
 #define MyAppExeName "devdatapod.exe"
 #define RepoRoot "D:\code\devdatapod"
