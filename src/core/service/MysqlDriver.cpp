@@ -218,6 +218,12 @@ bool MysqlDriver::initializeDatadir(QString* error) {
         return false;
     }
     log::info(QStringLiteral("mysql/%1: 初始化数据目录 %2").arg(instance_.id, absoluteDataDir()));
+    // mysqld --initialize 只建 datadir 叶子目录，不递归建父目录；全新安装时
+    // data/instances/<kind>/ 还不存在，不先 mkpath 就是 errno 2。
+    if (!QDir().mkpath(absoluteDataDir())) {
+        if (error) *error = QStringLiteral("无法创建数据目录 %1").arg(absoluteDataDir());
+        return false;
+    }
     // mysqld --initialize 要求 datadir 完全为空，而我们的 my.ini 就写在 datadir 里，
     // 所以初始化不能用 --defaults-file 指向它，改成命令行直接传参。
     // lower_case_table_names 必须在初始化时定死（事后改它要重建整个 datadir）。

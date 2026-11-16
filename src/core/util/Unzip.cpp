@@ -76,11 +76,18 @@ bool extract(const QString& archivePath, const QString& destDir,
     }
 
     // 递归定位 serverBinary 所在的目录（不同包壳层数不一样）。
-    const QString serverDir = findServerDir(tempDir, serverBinary);
+    QString serverDir = findServerDir(tempDir, serverBinary);
     if (serverDir.isEmpty()) {
         if (error) *error = QStringLiteral("解压后没找到 %1").arg(serverBinary);
         QDir(tempDir).removeRecursively();
         return false;
+    }
+
+    // MySQL 官方包的布局是 <壳>/bin/mysqld.exe + <壳>/share/errmsg.sys：只摊平 bin/
+    // 会丢掉 share/，mysqld 初始化时找不到错误消息文件直接拒启。二进制在 bin/ 目录
+    // 里的包一律摊平其父目录（整个包壳），redis / nginx 的二进制不在 bin/，不受影响。
+    if (QDir(serverDir).dirName().compare(QStringLiteral("bin"), Qt::CaseInsensitive) == 0) {
+        serverDir = QFileInfo(serverDir).absolutePath();
     }
 
     // 摊平到 destDir。
