@@ -1,63 +1,49 @@
 # devdatapod
 
-绿色便携的本地开发服务面板 —— 集成 Nginx / MySQL(MariaDB) / Redis / PHP / Python 等常用服务，思路源自小皮面板（phpStudy），Qt 6 实现，Windows 先行，macOS 规划中。
+绿色便携的本地开发服务面板：nginx / MySQL(MariaDB) / Redis 一键启停，Windows 先行。
+本仓库是 **Rust + Dioxus** 重写版；原 Qt6/C++ 实现完整归档在 **qt 分支** 供对照。
 
-## 功能
+## 布局
 
-- **服务管理**：Nginx / MySQL / Redis 一键启停、重启、实例配置；多版本实例共存，每类至多一个「默认」实例拿规范端口（80 / 3306 / 6379），其余自动走 30000+ 槽位端口，「设为默认」是带回滚的事务切换。
-- **网站部署**：创建网站 = 域名 + 端口 + 根目录，Nginx vhost 生成 + `nginx -t` 校验 + 热重载（不断连接），删除站点不删磁盘文件。
-- **软件管理**：组件清单下载 → 解压 → 注册一条龙（内置 Redis 5 个版本、MySQL 4 个版本、Nginx 1.30.6），支持卸载。
-- **首页**：套件运行状态、系统监控（CPU/内存占用、核心/线程、P 核/E 核拓扑）、资源信息（系统/网络/面板）、面板日志实时 tail。
-- **孤儿进程治理**：Windows 下服务全部收进 Job Object（`KILL_ON_JOB_CLOSE`），面板崩溃/被杀不会留下游离的 nginx/mysql/redis。
-- **绿色便携**：不写注册表、全相对路径、安装目录支持空格与非中文外字符（`D:\小皮面板\` 也能跑）。
-- **配置不静默覆盖**：面板渲染的配置带托管块标记，块外的用户手改内容原样保留。
+| 路径 | 是什么 |
+|---|---|
+| `crates/ddp-core` | UI 无关的核心：端口规划、实例注册表、驱动（nginx/mysql/redis）、引擎 actor、托管块配置、孤儿进程治理、自检 |
+| `crates/ddp-app` | Dioxus Desktop 面板（`devdatapod.exe`）：首页/网站/软件管理/设置、托盘、单实例、关窗到托盘 |
+| `crates/ddp-cli` | 控制台入口（`ddp-cli.exe`）：`--selftest` 118 项不变量、`--stage` 注册实物目录、`--run` 起停验收 |
+| `config/ports.default.json` | 嵌入式端口规划种子（30000–32000，只绑 127.0.0.1） |
 
-## 技术栈
+## 构建与运行
 
-Qt 6.8 LTS（Widgets 为主 + 局部 QML 仪表）· CMake + Ninja · C++17 · spdlog。
-
-分层：`src/core/` 服务引擎（驱动 / 端口分配 / 进程监管 / 配置托管块，**不依赖任何 UI 头文件**，selftest 目标机械执法）→ `src/ui/` 界面与主题 → `src/app/` 入口、单实例、托盘。
-
-## 构建
-
-要求：Windows 10+ · Qt 6.8.x `msvc2022_64` · CMake ≥ 3.24 · Ninja · VS Build Tools 2022。
+需要 Rust 工具链（`rustc`/`cargo`，本机 1.98.1，msvc）。
 
 ```powershell
-# 首次：安装工具链（可重复执行，已完成步骤自动跳过）
-scripts\setup-toolchain.cmd
+# 调试构建 + 118 项自检
+powershell -File scripts/build.ps1
 
-# 构建（Debug）
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build.ps1 -Config Debug
+# 发布构建，产物拷到 dist\
+powershell -File scripts/build.ps1 -Release
 
-# 运行（Qt 运行时注入 PATH；DEVDATAPOD_ROOT 指向仓库根）
-$env:PATH = "D:\Qt\6.8.3\msvc2022_64\bin;$env:PATH"
-$env:DEVDATAPOD_ROOT = (Get-Location).Path
-.\build\devdatapod.exe
+# 开发运行（以仓库根为安装根，数据落 data/）
+scripts\run-dev.cmd
 ```
 
-自检：`.\build\devdatapod-selftest.exe` —— 98 项端口/实例模型不变量，退出码 0 即通过。
+绿色便携：`Paths::discover()` 以 exe 所在目录（其父级若非 `bin`）为安装根；
+开发/测试用环境变量 `DEVDATAPOD_ROOT` 覆盖。面板自身端口（ipc 30001 等）取自
+`data/ports.json`，全部只绑 `127.0.0.1`。
 
-## 目录结构
+## 核心规则（移植自 Qt 版，详见 AGENTS.md）
 
+- 端口一律来自 `data/ports.json` 规划（30000–32000 槽位段 + 80/443/3306/6379 规范端口），禁止硬编码。
+- 每个 kind 至多一个 `default` 实例；切默认是带事务与回滚的操作。
+- 每个实例 datadir 独立（`data/instances/<kind>/<version>/`），永不共享。
+- 配置经 schema + 模板渲染 + 托管块标记，不静默覆盖用户手改。
+- Windows 孤儿治理：Job Object（`KILL_ON_JOB_CLOSE`）+ 启动时按安装根路径清扫。
+- 单实例：回环 TCP（`panel.ipc` 端口）+ PID 锁兜底；二次启动会唤醒已运行的面板。
+
+## 自检
+
+```powershell
+ddp-cli --selftest     # 118 passed, 0 failed
+ddp-cli --stage Extensions\redis3.0.504   # 注册实物目录并 detect()
+ddp-cli --run redis-3.0.504               # 起服务→协议探针→停服务
 ```
-src/core/      服务引擎：驱动（Nginx/MySQL/Redis）、PortAllocator、Supervisor、托管块
-src/ui/        Widgets 界面、主题 token（单一来源同时喂 QSS 与 QML）
-src/app/       程序入口、单实例锁、托盘、selftest / --stage / --run
-scripts/       构建脚本与工具链安装
-data/          运行期生成：实例注册、端口分配、站点表（已 gitignore）
-Extensions/    软件管理下载安装的组件实物（已 gitignore）
-```
-
-## 端口约定
-
-- 面板自身端口一律落在 **30000–32000** 且只绑 `127.0.0.1`。
-- 规范端口（80/443/3306/6379）**只属于该类的默认实例**，非默认实例走本类槽位段。
-- 所有端口由 `data/ports.json` 经 `PortAllocator` 分配，代码里禁止硬编码端口数字。
-
-## 平台
-
-Windows 10 / 11 实测可用；macOS 为下一步目标（计划端口 30080 / 30443，Privileged Helper 留到 v2）。
-
-## 许可证
-
-[MIT](LICENSE) © devdatapod contributors

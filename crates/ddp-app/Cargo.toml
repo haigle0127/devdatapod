@@ -1,0 +1,25 @@
+[package]
+name = "ddp-app"
+version.workspace = true
+edition.workspace = true
+description = "devdatapod desktop panel (Dioxus)"
+
+[[bin]]
+name = "devdatapod"
+path = "src/main.rs"
+
+[dependencies]
+ddp-core = { path = "../ddp-core" }
+dioxus = { version = "0.7.10", features = ["desktop"] }
+tray-icon = "0.26"
+serde_json.workspace = true
+chrono.workspace = true
+tokio = { version = "1", features = ["time"] }
+ureq = "2.12"
+# Decodes the bundled logo.ico for the window/tray icons. Same version dioxus-desktop
+# already pulls in, so this adds no extra build cost.
+image = { version = "0.25.6", default-features = false, features = ["ico"] }
+
+[build-dependencies]
+# Embeds assets/logo.ico as the Windows exe resource.
+winres = "0.1"

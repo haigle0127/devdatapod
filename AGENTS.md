@@ -1,19 +1,22 @@
 # devdatapod — 项目约定（所有 agent 先读这个）
 
-绿色便携的本地开发服务面板，集成 nginx / MySQL(MariaDB) / Redis / PHP / Python 等，思路源自小皮面板（phpStudy），Qt6 实现，Windows 与 macOS 双平台。
+绿色便携的本地开发服务面板，集成 nginx / MySQL(MariaDB) / Redis / PHP / Python 等，思路源自小皮面板（phpStudy），Windows 与 macOS 双平台。
+
+**当前代码是 Rust + Dioxus 重写版**（2026-11）：`crates/ddp-core`（UI 无关核心）+ `crates/ddp-app`（Dioxus Desktop 面板）+ `crates/ddp-cli`（自检/注册/验收）。原 Qt6/C++ 实现完整归档在 **qt 分支**（1.0.1，原始路径），重写查旧逻辑去那里。
 
 ## 真源与参考
 
 | 路径 | 是什么 |
 |---|---|
 | `D:\phpstudy_pro` | 只读参考实现（Qt5 编译产物）。看目录布局和服务组织方式，**不要修改它** |
+| `qt` 分支 | Qt6 原版源码（重写时的行为对照源：端口/驱动/托管块/对话框逻辑以它为准） |
 
 ## 硬约束（不要违反，违反过 = 返工）
 
 1. **端口**：除服务自身默认端口（80/443、3306、6379）外，devdatapod 自己的端口一律落在 **30000–32000** 且只绑 `127.0.0.1`。上限卡 32767 以下，避免撞上系统动态端口区。规范默认端口**只属于该类的默认实例**，非默认实例一律走本类的高端口槽位段。
 2. **端口禁止硬编码**：所有端口从 `data/ports.json` 经 `PortAllocator` 取；端口迁移必须级联重渲染引用方配置（nginx `fastcgi_pass` 等）。
-3. **core 与 UI 隔离**：`src/core/**` 不得 include 任何 QtWidgets/QtQuick 头文件。v1.1 要把 core 拆成独立进程，届时只加一层 IPC。
-4. **QML 边界**：只有首页资源仪表等动效区用 `QQuickWidget`；表格、表单、对话框、设置页一律 Widgets。主题 token 单一来源同时喂 QSS 和 QML context，禁止两处硬编码颜色。
+3. **core 与 UI 隔离**：`crates/ddp-core` 不依赖任何 UI 框架（Dioxus/tray-icon 只出现在 `ddp-app`）。引擎是独立 actor 线程（命令 channel + snapshot 轮询），v1.1 拆独立进程时只加一层 IPC。
+4. **UI 技术栈（2026-11 重写后）**：Dioxus 0.7 Desktop（WebView2），无边框窗口 + 自绘标题栏/侧栏；主题 token 单一来源在 `crates/ddp-app/src/theme.rs`，同时喂 CSS 变量，禁止别处硬编码颜色。
 5. **孤儿进程治理是必须项**：Windows 用 Job Object（`JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`），macOS 用进程组 + 启动时按安装目录路径扫描清理。面板崩溃后不能留下 nginx/php 在跑。
 6. **配置不能静默覆盖用户手改**：schema + 模板渲染 + 托管块标记；检测到托管块外有改动则降级为纯文本编辑模式。
 7. **绿色 = 全相对路径**：不写注册表（除开机自启项）、不写死绝对路径、支持含空格与非 ASCII 的安装目录（`D:\小皮面板\` 必须能跑）。
@@ -21,7 +24,11 @@
 9. **编码**：`.cmd` / `.ps1` 一律**只用 ASCII** —— Windows PowerShell 5.1 对无 BOM 的 `.ps1` 按系统 ANSI 代码页（中文 Windows = GBK）解码，中文会变乱码并直接破坏解析（2026-09-02 安装脚本闪退就是这个原因）。C++ 源码里写中文注释/字符串必须给 MSVC 加 `/utf-8`：`add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/utf-8>)`，否则同样乱码外加 C4819。
 10. **多版本共存，但只认一个默认**：Python / MySQL / MariaDB / Redis / Nginx 同类可装多版本，每个 kind **至多一个 `default` 实例**，default 才拿规范端口（3306 / 6379 / 80），其余走槽位端口，可随时切换。三条不可违反的细节：① 每个实例的 datadir 独立（`data/instances/<kind>/<version>/`），**永不共享**，MySQL 8 的目录 5.7 打不开；② 切默认是**带回滚的事务**（停旧 → 原子换 role 与端口 → 起新并协议握手 → 级联重渲染引用方），失败就把旧实例拉回来，不许留中间态；③ 换默认 Python **不会**动已有 venv（venv 钉死在建它的解释器上），只能显式提供「重建 venv」。
 
-## 当前环境状态（2026-09-03）
+## 当前环境状态
+
+- **Rust 重写已端到端跑通（2026-11-19）**：workspace `crates/ddp-{core,app,cli}`，`ddp-cli --selftest` **118 passed, 0 failed**；`ddp-app`（Dioxus 0.7.10 + tray-icon 0.26，WebView2 157 在装）已实现首页/网站/软件管理/设置四页 + 托盘 + 单实例 + 关窗到托盘，并已实测：注册实物组件（`ddp-cli --stage`，junction 到 `D:\phpstudy_pro\Extensions` 的 `.devrun\` 临时根）、UI 启停 nginx、杀面板进程后 Job Object 连带杀掉 nginx（孤儿治理有效）。工具链：rustc/cargo 1.98.1（x86_64-pc-windows-msvc），crates.io 走 TUNA 镜像。构建：`scripts\build.ps1`（debug）/ `-Release`（产物拷 `dist\`）；开发运行 `scripts\run-dev.cmd`（`DEVDATAPOD_ROOT` 指仓库根）。排查运行问题先看 `logs\devdatapod.log`（panic 也经 panic hook 写进去）。
+- **踩过的坑（重写期）**：① windows-sys 的 `JOBOBJECT_BASIC_PROCESS_ID_LIST::ProcessIdList` 是定长 `[usize;1]`，当弹性数组用要 `offset_of!` 手动走指针，否则 debug 直接 index-out-of-bounds panic、release 是 UB（2026-11-19 实测踩中，面板一采样 stats 就崩）；② Qt 版写的 `data\sites.json` 带 UTF-8 BOM，JSON 解析前要剥；③ Dioxus 0.7 的 `Signal::set/write` 要 `mut` 绑定；`use_context` 不能塞进 `use_hook` 闭包（hook-in-hook 直接 panic）；④ `with_custom_head` 的头内容自己负责包 `<style>`，漏包会把 CSS 渲染成正文文本。
+- 以下是 **Qt 版时期的 P0 记录**，仅作历史参考（Qt 工具链对本仓库不再用于构建）：
 
 - **P0 工具链已装齐**（2026-09-02 第二轮，`SkipVs=False` 全跑通）：CMake 4.4.3 + Ninja 1.13.2 在 `C:\Users\haigle\AppData\Roaming\Python\Python314\Scripts`（已在用户 PATH）；Qt **6.8.3 msvc2022_64** 在 `D:\Qt\6.8.3\msvc2022_64`；Qt Creator 在 `D:\Qt\Tools\QtCreator\bin`；VS Build Tools 在 `D:\BuildTools`，实测 `cl` 报 **19.44.35228**（v143 / 17.14）。构建时给 `CMAKE_PREFIX_PATH=D:\Qt\6.8.3\msvc2022_64`。
 - **P0 已验收（2026-09-03 08:36）**：`scripts/verify-toolchain.ps1 -Stage all` 六项全 `[ok]`，launcher 退出码 0，证据日志 `logs/verify-20260903-083542.log`。CMake 识别到 `MSVC 19.44.35228.0` → `find_package(Qt6)` 通过 → Ninja 真链接出 `probe.exe` → 运行输出 `devdatapod P0 probe: Qt runtime 6.8.3 compiled against 6.8.3`。头文件 / 导入库 / CRT / `Qt6Core.dll` 解析全链路打通，**不再是「文件都在」级别的证据**。
@@ -39,8 +46,7 @@
 | 决策 | 结论 |
 |---|---|
 | 项目名 | **devdatapod**。早期叫 devConsole，已废弃 |
-| Qt 版本 | Qt 6.8 LTS + CMake/Ninja，不用 qmake，不碰已 EOL 的 6.5 |
-| UI | Widgets 为主 + 局部 QML |
+| **技术栈（2026-11-19 锁定）** | **Rust + Dioxus 重写**：workspace `crates/ddp-{core,app,cli}`；Dioxus **0.7.10** Desktop（不跟 0.8 alpha）；tray-icon 0.26；字体走内置 MiSans（base64 进 head）+ Noto Sans SC/YaHei 回退。Qt6 版归档在 **qt 分支**（1.0.1），本仓库只保留 Rust 代码 |
 | 组件分发 | 按需下载 + manifest（本体几 MB） |
 | 平台优先级 | Windows 先行，macOS 第二 |
 | macOS 端口 | 30080 / 30443，Privileged Helper 留到 v2 |

@@ -1,0 +1,13 @@
+[package]
+name = "ddp-cli"
+version.workspace = true
+edition.workspace = true
+description = "devdatapod self-test, stage and headless runner"
+
+[[bin]]
+name = "ddp-cli"
+path = "src/main.rs"
+
+[dependencies]
+ddp-core = { path = "../ddp-core" }
+serde_json.workspace = true
