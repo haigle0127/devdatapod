@@ -90,16 +90,14 @@ pub fn SettingsPage() -> Element {
                         },
                     )}
                     {toggle_row(
-                        "关闭窗口时最小化到托盘",
-                        "关闭按钮把面板藏进系统托盘；退出请用托盘菜单或标题栏",
+                        "关闭按钮最小化到托盘",
+                        "开启：点关闭把面板藏进系统托盘；关闭：点关闭最小化到任务栏。退出只走托盘右键菜单",
                         settings.close_to_tray,
                         {
                             let mut app = app;
                             EventHandler::new(move |on: bool| {
                                 app.settings.write().close_to_tray = on;
-                                if crate::state::store_setting("ui/closeToTray", on) {
-                                    crate::components::apply_close_behaviour();
-                                } else {
+                                if !crate::state::store_setting("ui/closeToTray", on) {
                                     app.problem("设置保存失败");
                                 }
                             })

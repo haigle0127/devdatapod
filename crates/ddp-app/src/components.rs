@@ -1,27 +1,16 @@
 ﻿//! Window chrome and shared chrome-level widgets: title bar, sidebar, status bar,
 //! the modal dialog host and the toast.
 
-use dioxus::desktop::{window, WindowCloseBehaviour};
+use dioxus::desktop::window;
 use dioxus::prelude::*;
 
 use crate::icons::Icon;
 use crate::state::{Action, AppState, Dialog, Page};
 use crate::theme;
 
-fn close_behaviour() -> WindowCloseBehaviour {
-    if crate::state::load_settings().close_to_tray {
-        WindowCloseBehaviour::WindowHides
-    } else {
-        WindowCloseBehaviour::WindowCloses
-    }
-}
-
-pub fn apply_close_behaviour() {
-    window().set_close_behavior(close_behaviour());
-}
-
 #[component]
 pub fn TitleBar() -> Element {
+    let mut maximized = use_signal(|| window().is_maximized());
     rsx! {
         div { class: "titlebar",
             div {
@@ -40,14 +29,31 @@ pub fn TitleBar() -> Element {
                 }
                 button {
                     class: "winbtn",
-                    title: "最大化 / 还原",
-                    onclick: move |_| window().toggle_maximized(),
-                    Icon { name: "restore", size: 13 }
+                    title: if *maximized.read() { "还原" } else { "最大化" },
+                    onclick: move |_| {
+                        let window = window();
+                        window.toggle_maximized();
+                        maximized.set(window.is_maximized());
+                    },
+                    if *maximized.read() {
+                        Icon { name: "restore", size: 13 }
+                    } else {
+                        Icon { name: "square", size: 12 }
+                    }
                 }
                 button {
                     class: "winbtn close",
                     title: "关闭",
-                    onclick: move |_| window().close(),
+                    onclick: move |_| {
+                        // The close button never quits: hide to tray (default) or minimize to
+                        // the taskbar. Quit is only reachable from the tray menu.
+                        let window = window();
+                        if crate::state::load_settings().close_to_tray {
+                            window.set_visible(false);
+                        } else {
+                            window.set_minimized(true);
+                        }
+                    },
                     Icon { name: "close", size: 14 }
                 }
             }

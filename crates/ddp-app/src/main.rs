@@ -273,7 +273,6 @@ fn main() {
 
     setup_tray();
 
-    let close_to_tray = state::load_settings().close_to_tray;
     let mut config = Config::new()
         .with_window(
             WindowBuilder::new()
@@ -283,11 +282,6 @@ fn main() {
                 .with_inner_size(LogicalSize::new(1280.0, 800.0))
                 .with_min_inner_size(LogicalSize::new(1080.0, 720.0)),
         )
-        .with_close_behaviour(if close_to_tray {
-            dioxus::desktop::WindowCloseBehaviour::WindowHides
-        } else {
-            dioxus::desktop::WindowCloseBehaviour::WindowCloses
-        })
         .with_custom_head(custom_head());
     if let Some(icon) = window_icon() {
         config = config.with_icon(icon);

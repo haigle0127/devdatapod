@@ -62,14 +62,15 @@ input, select, textarea { font: inherit; }
 .brand-img { width: 22px; height: 22px; flex: 0 0 22px; object-fit: contain; }
 .brand-name { font-weight: 600; font-size: 13px; letter-spacing: .2px; }
 .app-tagline { font-size: 12px; color: var(--ink-2); }
-.win-controls { display: flex; gap: 2px; }
+.win-controls { display: flex; gap: 2px; align-items: center; height: 100%; padding-right: 4px; }
 .winbtn {
-  width: 38px; height: 30px; border-radius: 8px;
+  width: 44px; height: 32px; border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
   color: var(--ink-2);
+  transition: background .12s ease, color .12s ease;
 }
 .winbtn:hover { background: var(--surface); color: var(--ink); }
-.winbtn.close:hover { background: var(--danger); color: #fff; }
+.winbtn.close:hover { background: #E81123; color: #fff; }
 
 /* ---------------------------------------------------------------- shell */
 .body { flex: 1; display: flex; min-height: 0; }

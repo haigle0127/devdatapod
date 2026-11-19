@@ -17,8 +17,10 @@ pub const FILE_TEXT: &str =
     "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5ZM14 3v5h5M9 13h6M9 17h6";
 pub const SPEAKER: &str =
     "M11 5 6 9H2v6h4l5 4V5ZM15.5 8.5a5 5 0 0 1 0 7M19 5a9 9 0 0 1 0 14";
-pub const MINUS: &str = "M5 12h14";
-pub const RESTORE: &str = "M6 6h12v12H6V6Z M9 2v4 M15 2v4 M9 18v4 M15 18v4 M2 9h4 M2 15h4 M18 9h4 M18 15h4";
+pub const MINUS: &str = "M5.5 12h13";
+pub const SQUARE: &str = "M6.5 6.5h11v11h-11z";
+pub const RESTORE: &str =
+    "M9 4.5h8a1.5 1.5 0 0 1 1.5 1.5v8H16V6.5H9V4.5ZM5 9.5h9A1.5 1.5 0 0 1 15.5 11v7A1.5 1.5 0 0 1 14 19.5H5A1.5 1.5 0 0 1 3.5 18v-7A1.5 1.5 0 0 1 5 9.5Z";
 pub const CLOSE: &str = "M18 6 6 18M6 6l12 12";
 pub const SEARCH: &str = "M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16ZM21 21l-4.3-4.3";
 pub const STAR: &str = "M12 3l2.7 5.7 6.3.8-4.6 4.3 1.2 6.2-5.6-3-5.6 3 1.2-6.2L3 9.5l6.3-.8L12 3Z";
@@ -42,6 +44,7 @@ pub fn Icon(name: &'static str, size: Option<i32>) -> Element {
         "file-text" => FILE_TEXT,
         "speaker" => SPEAKER,
         "minus" => MINUS,
+        "square" => SQUARE,
         "restore" => RESTORE,
         "close" => CLOSE,
         "search" => SEARCH,
