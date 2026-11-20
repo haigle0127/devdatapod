@@ -180,7 +180,7 @@ pub struct AppState {
     pub sites: Signal<Vec<Site>>,
     pub sys: Signal<SysView>,
     pub log_text: Signal<String>,
-    pub busy: Signal<Vec<String>>,
+    pub busy: Signal<Vec<(String, i64)>>,
     pub dialog: Signal<Option<Dialog>>,
     pub toast: Signal<Option<Toast>>,
     pub settings: Signal<SettingsView>,
@@ -213,18 +213,30 @@ impl AppState {
     }
 
     pub fn is_busy(&self, id: &str) -> bool {
-        self.busy.read().iter().any(|item| item == id)
+        self.busy.read().iter().any(|(item, _)| item == id)
     }
 
     pub fn mark_busy(&mut self, id: &str) {
         let mut list = self.busy.write();
-        if !list.iter().any(|item| item == id) {
-            list.push(id.to_string());
+        if !list.iter().any(|(item, _)| item == id) {
+            list.push((id.to_string(), chrono::Local::now().timestamp()));
         }
     }
 
     pub fn clear_busy(&mut self, id: &str) {
-        self.busy.write().retain(|item| item != id);
+        self.busy.write().retain(|(item, _)| item != id);
+    }
+
+    /// Safety net: a worker that panicked before reporting back would otherwise leave the
+    /// status bar stuck on "处理中". Entries older than a minute are dropped.
+    pub fn expire_busy(&mut self) {
+        let now = chrono::Local::now().timestamp();
+        let mut list = self.busy.write();
+        let before = list.len();
+        list.retain(|(_, at)| now - at < 60);
+        if list.len() != before {
+            ddp_core::log::warn("ui: dropped stale busy flag(s) after 60s without a worker reply");
+        }
     }
 
     pub fn toast(&mut self, text: impl Into<String>) {

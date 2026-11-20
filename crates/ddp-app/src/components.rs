@@ -25,7 +25,7 @@ pub fn TitleBar() -> Element {
                     class: "winbtn",
                     title: "最小化",
                     onclick: move |_| window().set_minimized(true),
-                    Icon { name: "minus", size: 14 }
+                    Icon { name: "minus", size: 17 }
                 }
                 button {
                     class: "winbtn",
@@ -36,9 +36,9 @@ pub fn TitleBar() -> Element {
                         maximized.set(window.is_maximized());
                     },
                     if *maximized.read() {
-                        Icon { name: "restore", size: 13 }
+                        Icon { name: "restore", size: 16 }
                     } else {
-                        Icon { name: "square", size: 12 }
+                        Icon { name: "square", size: 15 }
                     }
                 }
                 button {
@@ -54,7 +54,7 @@ pub fn TitleBar() -> Element {
                             window.set_minimized(true);
                         }
                     },
-                    Icon { name: "close", size: 14 }
+                    Icon { name: "close", size: 17 }
                 }
             }
         }
@@ -236,7 +236,13 @@ pub fn ToastHost() -> Element {
         Some(toast) => {
             let cls = if toast.error { "toast error" } else { "toast" };
             rsx! {
-                div { class: "{cls}", "{toast.text}" }
+                div { class: "toast-wrap",
+                    div {
+                        class: "{cls}",
+                        onclick: move |_| use_context::<AppState>().toast.set(None),
+                        "{toast.text}"
+                    }
+                }
             }
         }
         None => rsx! {},

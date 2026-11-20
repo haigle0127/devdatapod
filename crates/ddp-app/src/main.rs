@@ -279,8 +279,8 @@ fn main() {
                 .with_title("devdatapod")
                 .with_decorations(false)
                 .with_resizable(true)
-                .with_inner_size(LogicalSize::new(1280.0, 800.0))
-                .with_min_inner_size(LogicalSize::new(1080.0, 720.0)),
+                .with_inner_size(LogicalSize::new(1120.0, 700.0))
+                .with_min_inner_size(LogicalSize::new(1040.0, 660.0)),
         )
         .with_custom_head(custom_head());
     if let Some(icon) = window_icon() {
@@ -323,6 +323,7 @@ fn App() -> Element {
             for message in state::drain_messages() {
                 handle_message(&mut app, message);
             }
+            app.expire_busy();
 
             // Installer progress mirror.
             app.installs.set(state::install_snapshot());

@@ -305,21 +305,23 @@ fn LogPane() -> Element {
     let app = use_context::<AppState>();
     let text = app.log_text.read().clone();
     rsx! {
-        div { class: "pane-head",
-            span { class: "accent-bar" }
-            span { class: "section-title", "日志文件" }
-            span { class: "hint", "最近 200 行 · 每 2 秒自动刷新" }
-            span { class: "spacer" }
-            button {
-                class: "soft-btn",
-                onclick: move |_| {
-                    let dir = crate::state::paths().logs_dir();
-                    let _ = std::process::Command::new("explorer").arg(&dir).spawn();
-                },
-                Icon { name: "folder-open", size: 14 }
-                "打开目录"
+        div { class: "pane-col",
+            div { class: "pane-head",
+                span { class: "accent-bar" }
+                span { class: "section-title", "日志文件" }
+                span { class: "hint", "最近 200 行 · 每 2 秒自动刷新" }
+                span { class: "spacer" }
+                button {
+                    class: "soft-btn",
+                    onclick: move |_| {
+                        let dir = crate::state::paths().logs_dir();
+                        let _ = std::process::Command::new("explorer").arg(&dir).spawn();
+                    },
+                    Icon { name: "folder-open", size: 14 }
+                    "打开目录"
+                }
             }
+            pre { class: "logview", "{text}" }
         }
-        pre { class: "logview", "{text}" }
     }
 }

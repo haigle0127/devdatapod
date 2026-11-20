@@ -127,7 +127,7 @@ input, select, textarea { font: inherit; }
 /* ---------------------------------------------------------------- home */
 .announce { display: flex; align-items: center; gap: 10px; padding: 8px 14px; font-size: 12px; color: var(--ink-2); }
 .announce .link { margin-left: auto; color: var(--accent); }
-.suite { padding: 14px 18px; display: flex; flex-direction: column; min-height: 160px; }
+.suite { padding: 14px 18px; display: flex; flex-direction: column; flex: 1 1 auto; min-height: 160px; }
 .section-head { display: flex; align-items: center; gap: 10px; padding-bottom: 8px; }
 .accent-bar { width: 4px; border-radius: 2px; background: var(--accent); height: 18px; flex: 0 0 4px; }
 .accent-bar.pink { background: var(--accent-3); }
@@ -155,12 +155,12 @@ input, select, textarea { font: inherit; }
 .icon-btn:hover { background: var(--surface); color: var(--accent); }
 .icon-btn:disabled { opacity: .35; cursor: default; }
 
-.bottom { display: flex; gap: 14px; height: 218px; flex: 0 0 218px; }
-.menu-card { width: 168px; flex: 0 0 168px; padding: 10px; display: flex; flex-direction: column; gap: 4px; }
+.bottom { display: flex; gap: 14px; height: 218px; flex: 0 0 218px; }.menu-card { width: 168px; flex: 0 0 168px; padding: 10px; display: flex; flex-direction: column; gap: 4px; }
 .menu-btn { height: 34px; border-radius: 9px; padding: 0 10px; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-2); }
 .menu-btn:hover { background: var(--surface); }
 .menu-btn.active { background: var(--accent-soft); color: var(--accent); font-weight: 500; }
 .pane { flex: 1; min-width: 0; padding: 14px 16px; display: flex; gap: 20px; overflow: hidden; }
+.pane-col { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
 .gauge { width: 108px; flex: 0 0 108px; text-align: center; }
 .gauge svg { display: block; margin: 0 auto; }
 .gauge .g-label { font-size: 12px; color: var(--ink-2); margin-top: 4px; }
@@ -268,11 +268,15 @@ input, select, textarea { font: inherit; }
 .radio { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); }
 .radio.on { color: var(--accent); font-weight: 500; }
 
+.toast-wrap {
+  position: fixed; inset: 0; z-index: 60;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+}
 .toast {
-  position: fixed; right: 24px; bottom: 62px; z-index: 60;
   max-width: 440px; background: #2A2450; color: #fff;
-  border-radius: 10px; padding: 10px 14px; font-size: 12px; line-height: 1.6;
-  box-shadow: 0 12px 30px rgba(38, 32, 64, .3);
+  border-radius: 12px; padding: 12px 22px; font-size: 13px; line-height: 1.6;
+  box-shadow: 0 16px 40px rgba(38, 32, 64, .35);
   white-space: pre-wrap;
 }
 .toast.error { background: var(--danger); }
