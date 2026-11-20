@@ -7,6 +7,10 @@
 //! 4. spawn the engine actor
 //! 5. tray icon + menu, then the window
 
+// GUI subsystem: without this the exe is a console program and double-clicking it opens
+// a blank terminal window alongside the panel. (ddp-cli stays console on purpose.)
+#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
+
 mod components;
 mod dialogs;
 mod icons;
