@@ -7,9 +7,17 @@ use std::path::Path;
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
+
 use crate::log;
 use crate::log_tail::decode;
 use crate::supervisor::CommandResult;
+
+// CREATE_NO_WINDOW (winbase.h): helper binaries are console-subsystem; our GUI process has
+// no console to inherit, so without this every helper run would flash a blank terminal.
+#[cfg(windows)]
+const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
 pub fn run_once(
     program: &Path,
@@ -25,6 +33,8 @@ pub fn run_once(
         command.current_dir(dir);
     }
     command.stdout(Stdio::piped()).stderr(Stdio::piped());
+    #[cfg(windows)]
+    command.creation_flags(CREATE_NO_WINDOW);
 
     let mut child = match command.spawn() {
         Ok(child) => child,

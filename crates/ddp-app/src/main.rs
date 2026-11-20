@@ -156,7 +156,7 @@ fn tray_icon_rgba() -> (Vec<u8>, u32, u32) {
 
 fn setup_tray() {
     use tray_icon::menu::{Menu, MenuEvent, MenuItem, PredefinedMenuItem};
-    use tray_icon::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent};
+    use tray_icon::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 
     let show_item = MenuItem::with_id("ddp.show", "显示面板", true, None);
     let quit_item = MenuItem::with_id("ddp.quit", "退出", true, None);
@@ -166,20 +166,14 @@ fn setup_tray() {
     let icon = tray_icon::Icon::from_rgba(rgba, width, height).expect("tray icon");
 
     TrayIconEvent::set_event_handler(Some(|event| {
-        // Belt and braces: ask for the menu explicitly on left-click instead of relying on
-        // the internal default (which silently no-ops when the tray rect lookup fails).
+        // Left click shows the panel; the popup menu (显示面板/退出) is right-click only.
         if let TrayIconEvent::Click {
             button: MouseButton::Left,
             button_state: MouseButtonState::Up,
             ..
         } = event
         {
-            // SAFETY: the tray is boxed and intentionally leaked for the process lifetime;
-            // TRAY_PTR is written once before the handler can fire and never invalidated.
-            let ptr = TRAY_PTR.load(std::sync::atomic::Ordering::Acquire);
-            if ptr != 0 {
-                unsafe { (*(ptr as *const TrayIcon)).show_menu() };
-            }
+            push_tray(TrayCommand::Show);
         }
         if let TrayIconEvent::DoubleClick { .. } = event {
             push_tray(TrayCommand::Show);
@@ -197,19 +191,14 @@ fn setup_tray() {
         .with_tooltip("devdatapod")
         .with_icon(icon)
         .with_menu(Box::new(menu))
-        .with_menu_on_left_click(true)
+        .with_menu_on_left_click(false)
         .with_menu_on_right_click(true)
         .build()
         .expect("tray icon");
-    // Leak the tray for the process lifetime and remember where it lives, so the click
-    // handler can pop the menu explicitly. (TrayIcon is !Send/!Sync, hence the raw ptr.)
-    TRAY_PTR.store(
-        Box::into_raw(Box::new(tray)) as usize,
-        std::sync::atomic::Ordering::Release,
-    );
+    // Leak the tray for the process lifetime (TrayIcon is !Send/!Sync so a static would
+    // not compile); the leaked box is intentionally never dereferenced again.
+    let _ = Box::into_raw(Box::new(tray));
 }
-
-static TRAY_PTR: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
 
 // ----------------------------------------------------------------------------- window head
 

@@ -174,9 +174,9 @@ impl Supervisor {
         use windows_sys::Win32::Foundation::CloseHandle;
         use windows_sys::Win32::System::JobObjects::AssignProcessToJobObject;
         use windows_sys::Win32::System::Threading::{
-            CreateProcessW, ResumeThread, CREATE_BREAKAWAY_FROM_JOB, CREATE_SUSPENDED,
-            CREATE_UNICODE_ENVIRONMENT, PROCESS_INFORMATION, STARTF_USESHOWWINDOW,
-            STARTF_USESTDHANDLES, STARTUPINFOW,
+            CreateProcessW, ResumeThread, CREATE_BREAKAWAY_FROM_JOB, CREATE_NO_WINDOW,
+            CREATE_SUSPENDED, CREATE_UNICODE_ENVIRONMENT, PROCESS_INFORMATION,
+            STARTF_USESHOWWINDOW, STARTF_USESTDHANDLES, STARTUPINFOW,
         };
         use windows_sys::Win32::UI::WindowsAndMessaging::SW_HIDE;
 
@@ -216,7 +216,10 @@ impl Supervisor {
             .map(|dir| wide(&dir.to_string_lossy()));
 
         let job = self.job.as_ref().expect("valid supervisor has a job").0;
-        let mut flags = CREATE_SUSPENDED | CREATE_UNICODE_ENVIRONMENT;
+        // CREATE_NO_WINDOW: nginx/mysqld/redis-server are console-subsystem binaries; our
+        // GUI process has no console to inherit, so without this flag every start would
+        // flash a blank terminal window.
+        let mut flags = CREATE_SUSPENDED | CREATE_UNICODE_ENVIRONMENT | CREATE_NO_WINDOW;
         let mut info: PROCESS_INFORMATION = unsafe { std::mem::zeroed() };
         let mut created = unsafe {
             CreateProcessW(
