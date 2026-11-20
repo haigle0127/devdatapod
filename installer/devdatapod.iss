@@ -37,11 +37,15 @@ RestartApplications=no
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Code]
-// 默认安装到用户目录：面板的数据目录（data/logs）就写在安装根下，{localappdata}
-// 普通用户必然可写，零权限弹窗。已装过 1.0.x 的机器会沿用原安装目录。
+// 默认安装目录：有 D 盘装 D:\Program Files\devdatapod，没有则退回 C:\Program Files。
+// 注意 C:\Program Files 普通用户不可写，面板的数据目录（data/logs）就在安装根下，
+// 那种机器上运行面板需要管理员权限，装完若写数据失败请右键管理员运行。
 function GetDefaultDir(Param: String): String;
 begin
-  Result := ExpandConstant('{localappdata}\devdatapod');
+  if DirExists('D:\') then
+    Result := 'D:\Program Files\devdatapod'
+  else
+    Result := ExpandConstant('{autopf}\devdatapod');
 end;
 
 [Files]
