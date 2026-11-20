@@ -1,7 +1,5 @@
 # Build output
 logs/
-build/
-build-*/
 dist/
 .qoder/repowiki/
 
