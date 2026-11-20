@@ -139,7 +139,7 @@ pub fn SettingsPage() -> Element {
                 }
             }
             div { class: "hint", style: "text-align:center;padding:6px 0",
-                "devdatapod v{version} · 绿色便携 · 服务端口只绑定 127.0.0.1"
+                "devdatapod v{version} · haigletech荣誉出品"
             }
         }
     }
