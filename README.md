@@ -62,7 +62,6 @@ scripts\run-dev.cmd
 | `installer/` | Inno Setup 安装脚本（`devdatapod.iss`，中文向导词条在 `[Messages]`） |
 | `scripts/` | `build.ps1`（构建+自检+出包）、`run-dev.cmd`（开发启动） |
 | `config/ports.default.json` | 嵌入式端口规划种子（面板首次启动写入 `data/ports.json`） |
-| `docs/REWRITE-PLAN.md` | 重写计划与执行状态（P0–P7） |
 
 ## 架构要点
 
